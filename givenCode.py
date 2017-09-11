@@ -110,3 +110,7 @@ def getHeading():
     """Returns the XY Orientation as a heading unit vector"""
     return heading(getPose()['Pose']['Orientation'])
 
+
+
+
+
