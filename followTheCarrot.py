@@ -21,34 +21,41 @@ Find the point to aim for
 #pythagoras
 
 #if distance > lookAhedDistance got there
-def findGoalPoint(ourPath):
+def findGoalPoint(ourPath,roboPos):
+    list = []
     for i in range (len(ourPath)):
-        point= ourPath.pop(len(ourPath)-1)
-        
+        point= ourPath[len(ourPath)-1]
+        if point in list:
+            point=ourPath.pop()
+    
+        list.append(point)
         xdiff= point['X'] - roboPos['X']
         ydiff= point['Y'] - roboPos['Y']
 
         distance=pythagoras_t(xdiff,ydiff)
 
-        if(distance>5):
-            return point;
+        if(distance<0.1):
+            ourPath.pop()
         else:
-            ourPath.pop
+            return point
 
-"""
-Method diff_points
-Calcs the difference between points
-"""
+"""def findGoalPoint(ourPath,roboPos):
+    list = []
+    for i in range (len(ourPath)):
+        point= ourPath.pop(len(ourPath)-1)
+        if point in list:
+                point=ourPath.pop()
 
-"""
-Method diff_angels
-Calcs the the difference between angles
-"""
-
-"""
-Method diff_roboPosAngle
-Find out what the angle is between noth and robot vector
-"""
+        list.append(point)        
+       
+        xdiff= point['X'] - roboPos['X']
+        ydiff= point['Y'] - roboPos['Y']
+    
+        distance=pythagoras_t(ydiff,xdiff)  
+        
+        if(distance>0.7):
+                return point"""
+    
 
 """Method pythagoras"""
 def pythagoras_t(a,b):
@@ -58,33 +65,53 @@ def pythagoras_t(a,b):
 def getXYZpos():
     return getPose()['Pose']['Position']
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     path = Path()
     
     ourPath = path.loadPathAndMakeStack('Path-to-bed.json')
-    print len(ourPath)
+    
+    #ourPath = path.loadPathAndMakeStack('Path-around-table.json')
+    
+    #ourPath = path.loadPathAndMakeStack('Path-from-bed.json')
+    
+    
     
     try:
         while(ourPath):
             
             roboPos= getXYZpos()
+            print('Current position: ', roboPos)
             
             roboHeading = getHeading()
             
-            carrotPoint = findGoalPoint(ourPath)
+            print('Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getHeading()))
+            
+            carrotPoint = findGoalPoint(ourPath,roboPos)
+            
+            print('Current carrot point: ', carrotPoint)
             
             if(carrotPoint):
             
-                roboAngle=atan2(roboHeading['X'],roboHeading['Y'])
+                roboAngle=atan2(roboHeading['Y'],roboHeading['X'])
                 
+                print ('Current Robotangle', roboAngle)
                 
                 pointAngle=atan2(carrotPoint['Y']-roboPos['Y'],carrotPoint['X']-roboPos['X'])
                 
-                angleDiff= pointAngle-roboAngle
+                print ('Current point angle', pointAngle)
                 
-                kp=0.5
+                angleDiff=pointAngle-roboAngle
+                
+                if angleDiff >= pi/2 or angleDiff < -pi/2:
+                    angleDiff=roboAngle-pointAngle
+                else:
+                    angleDiff =pointAngle- roboAngle
+                    
+                
+                kp=0.1
                 
                 turnMagnitude= kp + angleDiff
+                
                 print turnMagnitude
                 
                 response=postSpeed(turnMagnitude,0.5)
@@ -92,33 +119,6 @@ if __name__ == '__main__':
                 time.sleep(3)
                 
         response=postSpeed(0,0)
+        
     except UnexpectedResponse as ex:
         print('Unexped response from server when sending speed commands:',ex)
-            
-            
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-                    
-    
-    
-    
-    
-    
-
-    
-
-
-
