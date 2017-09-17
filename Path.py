@@ -1,4 +1,5 @@
 import json
+import time
 
 class Path:
 
@@ -16,7 +17,18 @@ class Path:
             for i in range (len(data)):
                 stack.append(data[i]['Pose']['Position'])
                 stack.reverse
-            return stack            
+            return stack 
+        
+    def findLastPoint(self, file_name):
+        with open(file_name) as path_file:
+            data=json.load(path_file)
+            stack = []
+            for i in range (len(data)):
+                stack.append(data[i]['Pose']['Position'])
+            point=stack[0]
+            return point 
+            
+        
     
     def vectorizePath(self):
         vecArray = [{'X': p['Pose']['Position']['X'], \

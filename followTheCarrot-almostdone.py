@@ -16,123 +16,94 @@ import sys
 """
 Method findGoalPoint
 Find the point to aim for
+Takes the path and current position of the robot 
+as arguments
 """
-#compare robo pos x with coordinate x
-#compare robo pos y with coorinate y
-#pythagoras
 
+def findGoalPoint(ourPath,roboPos):
 
-def findGoalPoint(ourPath,roboPos,number):
-    #list = []
-    counter=-1
     for i in range (len(ourPath)):
-        #point= ourPath[len(ourPath)-1]
-        if counter<number:
+     
             point= ourPath[i]
-            #if point in list:
-                #point=ourPath.pop([len(ourPath)-1])
-        
-            #list.append(point)
+            
             xdiff= point['X'] - roboPos['X']
             ydiff= point['Y'] - roboPos['Y']
     
             distance=pythagoras_t(xdiff,ydiff)
-            print (distance)
-            counter=counter+1
-    
+
             if(distance<1):
                 ourPath.pop(i)
             else:
                 return point
-        else:
-            sys.exit()
-
-#def findGoalPoint(ourPath,roboPos):
-    #list = []
-    #for i in range (len(ourPath)):
-        #point= ourPath.pop([len(ourPath)-1])
-        #if point in list:
-                #point=ourPath.pop()
-
-        #list.append(point)        
-       
-        #xdiff= point['X'] - roboPos['X']
-        #ydiff= point['Y'] - roboPos['Y']
-    
-        #distance=pythagoras_t(ydiff,xdiff)  
-        
-        #if(distance>0.7):
-                #return point
     
 
-"""Method pythagoras"""
+"""
+Method pythagoras
+Calculates the hypothenus beween the 
+point A and B
+"""
 def pythagoras_t(a,b):
     return sqrt((a**2)+(b**2))
 
-"""Method getXYZpos"""
+
+"""
+Method getXYZpos
+Return the robot's current position in a 
+XYZ-coordinate system
+"""
 def getXYZpos():
     return getPose()['Pose']['Position']
 
-def withinGoal(roboPos, ourPath):
-    goal=ourPath[len(ourPath)-1]
-    distanceGoal=pythagoras_t(goal['X']-roboPos['X'],goal['Y']-roboPos['Y'])
-    if len(ourPath)<2:
-        return True
-    else:
-        return False
-    
-    
-    
 
-#def scalor(angleDiff):
-    #return 1-exp(-2*angleDiff**2)
-
-if _name_ == '_main_':
+"""
+Main function
+Runs the methods and the follow-the-carrot
+algorithm
+"""
+if __name__ == '__main__':
     path = Path()
     
+    """The different paths"""
     #ourPath = path.loadPathAndMakeStack('Path-to-bed.json')
     
     ourPath = path.loadPathAndMakeStack('Path-around-table.json')
-    number=len(ourPath)
-    finalPoint=ourPath[-1]
+    
+    lenPath= len(ourPath)
+    counter=1
     
     #ourPath = path.loadPathAndMakeStack('Path-from-bed.json')
     
-    
+    lastPoint = path.findLastPoint('Path-around-table.json')
     
     try:
-        while(ourPath):
+        while (len(ourPath)>2):
+            print ('Path lenght: ')
+            print (len(ourPath))
             
             roboPos= getXYZpos()
             
-            if(withinGoal(roboPos,ourPath)==True):
+            if(roboPos==lastPoint):
                 response=postSpeed(0,0)
-                print ('SUCCESS')
-                sys.exit()
+                print ('GOAL REACHED')
+                sys.exit(0)
                 
-            #print('Current position: ', roboPos)
+         
+            print('Current position: ', roboPos)
             
             roboHeading = getHeading()
             
+            print('Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getHeading()))
             
-            #print('Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getHeading()))
-            
-            carrotPoint = findGoalPoint(ourPath,roboPos,number)
-            if carrotPoint==finalPoint:
-                print('Final destination')
-                sys.exit()
-            
-            #print('Current carrot point: ', carrotPoint)
+            carrotPoint = findGoalPoint(ourPath,roboPos)
+           
             
             if(carrotPoint):
             
                 roboAngle=atan2(roboHeading['Y'],roboHeading['X'])
                 
-                print ('Current Robotangle', roboAngle)
                 
                 pointAngle=atan2(carrotPoint['Y']-roboPos['Y'],carrotPoint['X']-roboPos['X'])
                 
-                print ('Current point angle', pointAngle)
                 
                 angleDiff=pointAngle-roboAngle
                 
@@ -142,14 +113,14 @@ if _name_ == '_main_':
                     angleDiff=angleDegree-360
                 if angleDegree<-180:
                     angleDiff =angleDegree+360
-                  
-                    
-                kp=0.1
+                #if angleDiff >=pi:
+                    #angleDiff=angleDiff-2*pi
+                #if angleDiff <-pi:
+                    #angleDiff=angleDiff+2*pi
+                
                  
                 turnMagnitude= angleDiff
                 
-                print (turnMagnitude)
-               
                 
                 response=postSpeed(turnMagnitude,0.5)
                 
@@ -159,3 +130,31 @@ if _name_ == '_main_':
         
     except UnexpectedResponse as ex:
         print('Unexped response from server when sending speed commands:',ex)
+            
+            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                    
+    
+    
+    
+    
+    
+
+    
+
+
+
