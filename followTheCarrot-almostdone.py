@@ -5,11 +5,11 @@ Viyan Ateaa
 
 """
 
-import json, time 
+import json, time, sys
 from math import *
 from givenCode import *
 from path import *
-import sys
+
 
 
 
@@ -21,22 +21,17 @@ as arguments
 """
 
 def findGoalPoint(ourPath,roboPos):
-
-    for i in range (len(ourPath)):
-     
-            point= ourPath[i]
-            
-            xdiff= point['X'] - roboPos['X']
-            ydiff= point['Y'] - roboPos['Y']
-    
-            distance=pythagoras_t(xdiff,ydiff)
-
-            if(distance<1):
-                ourPath.pop(i)
-            else:
-                return point
-    
-
+    counter=0       
+    while ourPath:
+        point= ourPath[counter]
+        distance=distanceCalc(point,roboPos)
+        
+        if(distance<1):
+            ourPath.pop(counter)
+        else:
+            return point
+        counter+=1
+    return None
 """
 Method pythagoras
 Calculates the hypothenus beween the 
@@ -53,40 +48,40 @@ XYZ-coordinate system
 """
 def getXYZpos():
     return getPose()['Pose']['Position']
+"""
+Method distanceCalc
+Returns the distance between two points"""
+def distanceCalc(pointA, pointB):
+    xdiff= pointA['X'] - pointB['X']
+    ydiff= pointA['Y'] - pointB['Y']
 
+    return pythagoras_t(xdiff,ydiff)    
 
+def main():
+    if(len(sys.argv)>1):
+        file_name=sys.argv[1]
+    else:
+        file_name='Path-to-bed.json'
+    return file_name    
 """
 Main function
 Runs the methods and the follow-the-carrot
 algorithm
 """
-if __name__ == '__main__':
+
+if _name_ == '_main_':
+    starttime = time.time()
+    
+    file_name=main()
+    
     path = Path()
     
-    """The different paths"""
-    #ourPath = path.loadPathAndMakeStack('Path-to-bed.json')
-    
-    ourPath = path.loadPathAndMakeStack('Path-around-table.json')
-    
-    lenPath= len(ourPath)
-    counter=1
-    
-    #ourPath = path.loadPathAndMakeStack('Path-from-bed.json')
-    
-    lastPoint = path.findLastPoint('Path-around-table.json')
-    
+    ourPath = path.loadPathAndMakeStack(file_name)
+
     try:
-        while (len(ourPath)>2):
-            print ('Path lenght: ')
-            print (len(ourPath))
+        while (ourPath):
             
             roboPos= getXYZpos()
-            
-            if(roboPos==lastPoint):
-                response=postSpeed(0,0)
-                print ('GOAL REACHED')
-                sys.exit(0)
-                
          
             print('Current position: ', roboPos)
             
@@ -97,64 +92,36 @@ if __name__ == '__main__':
             carrotPoint = findGoalPoint(ourPath,roboPos)
            
             
-            if(carrotPoint):
+            if(carrotPoint!=None):
             
                 roboAngle=atan2(roboHeading['Y'],roboHeading['X'])
-                
-                
+                    
+                    
                 pointAngle=atan2(carrotPoint['Y']-roboPos['Y'],carrotPoint['X']-roboPos['X'])
-                
-                
+                    
+                    
                 angleDiff=pointAngle-roboAngle
-                
+                    
+                #Degrees
                 angleDegree=angleDiff *180/pi
-                
+                    
                 if angleDegree >= 180: 
-                    angleDiff=angleDegree-360
+                    angleDiff=(angleDegree-360)*(pi/180)
                 if angleDegree<-180:
-                    angleDiff =angleDegree+360
-                #if angleDiff >=pi:
-                    #angleDiff=angleDiff-2*pi
-                #if angleDiff <-pi:
-                    #angleDiff=angleDiff+2*pi
-                
-                 
-                turnMagnitude= angleDiff
-                
-                
-                response=postSpeed(turnMagnitude,0.5)
-                
-                time.sleep(1)
-                
-        response=postSpeed(0,0)
+                    angleDiff =(angleDegree+360)*(pi/180)
+                    
+                turnMagnitude = angleDiff
+                    
+                    
+                response=postSpeed(turnMagnitude,0.7)
+                    
         
     except UnexpectedResponse as ex:
         print('Unexped response from server when sending speed commands:',ex)
-            
-            
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-                    
-    
-    
-    
-    
-    
-
-    
-
-
-
+        
+    except IndexError as ex:
+        response=postSpeed(0,0)
+        endtime = time.time()
+        runtime = endtime - starttime
+        print ('GOAL')
+        print ('The robot finished the path in:', runtime, 'seconds')

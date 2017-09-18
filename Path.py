@@ -19,14 +19,14 @@ class Path:
                 stack.reverse
             return stack 
         
-    def findLastPoint(self, file_name):
-        with open(file_name) as path_file:
-            data=json.load(path_file)
-            stack = []
-            for i in range (len(data)):
-                stack.append(data[i]['Pose']['Position'])
-            point=stack[0]
-            return point 
+    #def findLastPoint(self, file_name):
+        #with open(file_name) as path_file:
+            #data=json.load(path_file)
+            #stack = []
+            #for i in range (len(data)):
+                #stack.append(data[i]['Pose']['Position'])
+            #point=stack[0]
+            #return point 
             
         
     
@@ -36,11 +36,3 @@ class Path:
                      'Z': p['Pose']['Position']['Z']}\
                      for p in self.path]
         return vecArray
-    
-
-        
-        
-        
-
-
-
